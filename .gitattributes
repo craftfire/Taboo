@@ -1,0 +1,11 @@
+# LF ling endings on repository and locally
+* text eol=lf
+*.java text eol=lf
+
+# Binary files that should not be modified
+*.dat binary
+*.db binary
+*.jpg binary
+*.png binary
+*.ttf binary
+*.wav binary
