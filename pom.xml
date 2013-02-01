@@ -1,14 +1,238 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.craftfire</groupId>
-  <artifactId>taboo</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>Taboo</name>
-  <dependencies>
-  	<dependency>
-  		<groupId>com.craftfire</groupId>
-  		<artifactId>commons</artifactId>
-  		<version>0.0.1-SNAPSHOT</version>
-  	</dependency>
-  </dependencies>
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Project information -->
+    <name>Taboo</name>
+    <groupId>com.craftfire</groupId>
+    <artifactId>taboo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <url>http://www.craftfire.com</url>
+    <inceptionYear>2013</inceptionYear>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <commonsVersion>0.0.1-SNAPSHOT</commonsVersion>
+        <bukkitVersion>1.4.5-R0.3-SNAPSHOT</bukkitVersion>
+        <spoutVersion>dev-SNAPSHOT</spoutVersion>
+        <buildNumber>0</buildNumber>
+    </properties>
+
+    <!-- Organization -->
+    <organization>
+        <name>CraftFire</name>
+        <url>http://www.craftfire.com</url>
+    </organization>
+
+    <!-- License -->
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License Version 3</name>
+            <url>http://www.gnu.org/licenses/lgpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <!-- Source code -->
+    <scm>
+        <developerConnection>scm:git:git@github.com:CraftFire/Taboo.git</developerConnection>
+        <connection>scm:git:git://github.com/CraftFire/Taboo.git</connection>
+        <url>https://github.com/CraftFire/Taboo</url>
+    </scm>
+
+    <!-- Continuous integration -->
+    <!--<ciManagement>
+        <system>jenkins</system>
+        <url>http://build.craftfire.com/job/Taboo</url>
+    </ciManagement> NOT SET UP YET-->
+
+    <!-- Repository locations -->
+    <repositories>
+        <repository>
+            <id>craftfire-repo</id>
+            <url>http://repo.craftfire.com</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>craftfire-repo</id>
+            <url>http://repo.craftfire.com</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <!-- Dependencies -->
+    <dependencies>
+        <dependency>
+            <groupId>com.craftfire</groupId>
+            <artifactId>commons</artifactId>
+            <version>${commonsVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>${bukkitVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.spout</groupId>
+            <artifactId>spoutapi</artifactId>
+            <version>${spoutVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- Build settings -->
+    <build>
+        <defaultGoal>clean install</defaultGoal>
+
+        <!-- Resources -->
+        <resources>
+            <resource>
+                <targetPath>.</targetPath>
+                <filtering>false</filtering>
+                <directory>${basedir}</directory>
+                <includes>
+                    <include>LICENSE.txt</include>
+                </includes>
+            </resource>
+            <resource>
+                <targetPath>.</targetPath>
+                <filtering>false</filtering>
+                <directory>${basedir}/src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <!-- Plugins -->
+        <plugins>
+            <!-- License header formatting plugin -->
+            <plugin>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.10.b1</version>
+                <executions>
+                    <execution>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <quiet>true</quiet>
+                    <encoding>UTF-8</encoding>
+                    <strictCheck>true</strictCheck>
+                    <header>${basedir}/HEADER.txt</header>
+                    <keywords>
+                        <keyword>${project.name}</keyword>
+                        <keyword>license</keyword>
+                    </keywords>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+                    <properties>
+                        <name>${project.name}</name>
+                        <url>${project.organization.url}</url>
+                        <license>GNU Lesser General Public License</license>
+                        <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+                        <copyright>Copyright (c) ${project.inceptionYear}-2013, ${project.organization.name}</copyright>
+                    </properties>
+                    <includes>
+                        <include>src/main/java/**</include>
+                        <include>src/test/java/**</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <!-- Version strip plugin -->
+            <plugin>
+                <groupId>com.sourcesense.maven</groupId>
+                <artifactId>maven-nosnapshot-plugin</artifactId>
+                <version>0.0.7-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>strip</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <version>${project.version}</version>
+                    <propertyName>releaseVersion</propertyName>
+                </configuration>
+            </plugin>
+            <!-- Compile plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <!-- JAR creation plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+            </plugin>
+            <!-- JAR dependency addition plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <include>com.craftfire:*</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <!-- Plugin management -->
+        <pluginManagement>
+            <plugins>
+                <!-- Eclipse exclusions -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>com.sourcesense.maven</groupId>
+                                        <artifactId>maven-nosnapshot-plugin</artifactId>
+                                        <versionRange>[0.0.7-SNAPSHOT,)</versionRange>
+                                        <goals>
+                                            <goal>strip</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore/>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <description>A plugin for Bukkit and Spout platforms to punish players for using certain words in chat.
+</description>
 </project>
