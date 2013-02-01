@@ -31,6 +31,6 @@ public abstract class Action {
         return this.args;
     }
 
-    public abstract void execute(TabooPlayer target);
+    public abstract void execute(TabooPlayer target, Taboo taboo, String message);
 
 }

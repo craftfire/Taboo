@@ -20,6 +20,7 @@
 package com.craftfire.taboo.actions;
 
 import com.craftfire.taboo.Action;
+import com.craftfire.taboo.Taboo;
 import com.craftfire.taboo.TabooPlayer;
 
 public class Reprimend extends Action {
@@ -32,7 +33,7 @@ public class Reprimend extends Action {
     }
 
     @Override
-    public void execute(TabooPlayer target) {
+    public void execute(TabooPlayer target, Taboo taboo, String message) {
         target.sendMessage(getArgs()[0]);
     }
 

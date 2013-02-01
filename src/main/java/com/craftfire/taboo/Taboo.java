@@ -29,8 +29,8 @@ public class Taboo {
 
     private final String name;
     private List<Pattern> patterns;
-    private List<String> actions;
-    private List<String> substitutions;
+    private List<Action> actions = new ArrayList<Action>();
+    private List<String> substitutions = new ArrayList<String>();
     private final String includePermission, excludePermission;
 
     public Taboo(String name, String includePermission, String excludePermission) {
@@ -53,12 +53,12 @@ public class Taboo {
         return message;
     }
 
-    public List<String> getActions() {
-        return new ArrayList(this.actions);
+    public List<Action> getActions() {
+        return this.actions;
     }
 
     public List<String> getSubstitutions() {
-        return new ArrayList(this.substitutions);
+        return this.substitutions;
     }
 
 

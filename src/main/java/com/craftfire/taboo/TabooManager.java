@@ -45,7 +45,7 @@ public class TabooManager {
         while (i.hasNext()) {
             Taboo taboo = i.next();
             if (taboo.matches(message, player)) {
-                executeActions(taboo, player);
+                executeActions(taboo, player, message);
                 message = taboo.replace(message);
                 if (this.onlyOnce) {
                     break;
@@ -55,12 +55,12 @@ public class TabooManager {
         return message;
     }
 
-    protected void executeActions(Taboo taboo, TabooPlayer player) {
+    protected void executeActions(Taboo taboo, TabooPlayer player, String message) {
         Iterator i = taboo.getActions().iterator();
         while (i.hasNext()) {
             Action action = this.actions.get(i.next());
             if (action != null) {
-                action.execute(player);
+                action.execute(player, taboo, message);
             }
         }
     }

@@ -20,6 +20,7 @@
 package com.craftfire.taboo.actions;
 
 import com.craftfire.taboo.Action;
+import com.craftfire.taboo.Taboo;
 import com.craftfire.taboo.TabooPlayer;
 
 public class Kick extends Action {
@@ -29,7 +30,7 @@ public class Kick extends Action {
     }
 
     @Override
-    public void execute(TabooPlayer target) {
+    public void execute(TabooPlayer target, Taboo taboo, String message) {
         if (getArgs().length > 1) {
             target.kick(getArgs()[0]);
         } else {
