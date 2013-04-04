@@ -1,0 +1,22 @@
+# If set to true, matches only one taboo per message
+match-once: true
+
+actions:
+    kick:
+        class: Kick
+        message: "You have been kicked for using bad words"
+    reprimend1:
+        class: Reprimend
+        message: "Don't say this again"
+    reprimend2:
+        class: Reprimend
+        message: "Shut up!"
+
+taboos:
+    damn:
+        patterns:
+            - "damn"
+        replacement: "darn"
+        includePermission: taboo.include.damn
+        actions:
+            - reprimend1

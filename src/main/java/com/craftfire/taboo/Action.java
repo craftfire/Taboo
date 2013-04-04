@@ -19,18 +19,19 @@
  */
 package com.craftfire.taboo;
 
+import com.craftfire.commons.yaml.YamlNode;
 
 public abstract class Action {
-    private String[] args;
+    private YamlNode args;
 
-    public Action(String[] args) {
+    public Action(YamlNode args) {
         this.args = args;
     }
 
-    public String[] getArgs() {
+    public YamlNode getArgs() {
         return this.args;
     }
 
-    public abstract void execute(TabooPlayer target, Taboo taboo, String message);
+    public abstract void execute(TabooPlayer target, Taboo taboo, String message) throws Exception;
 
 }

@@ -23,16 +23,19 @@ import com.craftfire.taboo.Action;
 import com.craftfire.taboo.Taboo;
 import com.craftfire.taboo.TabooPlayer;
 
+import com.craftfire.commons.yaml.YamlException;
+import com.craftfire.commons.yaml.YamlNode;
+
 public class Kick extends Action {
 
-    public Kick(String[] args) {
+    public Kick(YamlNode args) {
         super(args);
     }
 
     @Override
-    public void execute(TabooPlayer target, Taboo taboo, String message) {
-        if (getArgs().length > 1) {
-            target.kick(getArgs()[0]);
+    public void execute(TabooPlayer target, Taboo taboo, String message) throws YamlException {
+        if (getArgs().hasChild("message")) {
+            target.kick(getArgs().getChild("message").getString());
         } else {
             target.kick(null);
         }

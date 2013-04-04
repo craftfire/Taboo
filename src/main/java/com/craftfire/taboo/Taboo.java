@@ -24,19 +24,53 @@ import java.util.List;
 import java.util.Random;
 import java.util.regex.Pattern;
 
+import com.craftfire.commons.yaml.YamlException;
+import com.craftfire.commons.yaml.YamlNode;
+
 public class Taboo {
     private static Random random = new Random();
 
     private final String name;
-    private List<Pattern> patterns;
-    private List<Action> actions = new ArrayList<Action>();
-    private List<String> substitutions = new ArrayList<String>();
-    private final String includePermission, excludePermission;
+    private final List<Pattern> patterns = new ArrayList<Pattern>();
+    private final List<String> actions = new ArrayList<String>();
+    private final String includePermission, excludePermission, replacement;
 
-    public Taboo(String name, String includePermission, String excludePermission) {
-        this.name = name;
-        this.includePermission = includePermission;
-        this.excludePermission = excludePermission;
+    public Taboo(YamlNode desc) throws YamlException {
+        this.name = desc.getName();
+
+        if (!desc.hasChild("patterns") || !desc.getChild("patterns").isList()) {
+            throw new IllegalStateException(); // TODO: Throw something better
+        }
+        parsePatterns(desc.getChild("patterns"));
+
+        if (desc.hasChild("includePermission")) {
+            this.includePermission = desc.getChild("includePermission").getString();
+        } else {
+            this.includePermission = null;
+        }
+
+        if (desc.hasChild("excludePermission")) {
+            this.excludePermission = desc.getChild("excludePermission").getString();
+        } else {
+            this.excludePermission = null;
+        }
+
+        if (desc.hasChild("replacement")) {
+            this.replacement = desc.getChild("replacement").getString();
+        } else {
+            this.replacement = null;
+        }
+
+        if (desc.hasChild("actions")) {
+            YamlNode actions = desc.getChild("actions");
+            if (actions.isList()) {
+                for (YamlNode node : actions.getChildrenList()) {
+                    this.actions.add(node.getString());
+                }
+            } else {
+                // TODO: print an error
+            }
+        }
     }
 
     public String getName() {
@@ -44,22 +78,42 @@ public class Taboo {
     }
 
     public boolean matches(String message, TabooPlayer player) {
-        // TODO
+        if (this.includePermission != null && !player.checkPermission(this.includePermission)) {
+            return false;
+        }
+        if (this.excludePermission != null && player.checkPermission(this.excludePermission)) {
+            return false;
+        }
+        for (Pattern pattern : this.patterns) {
+            if (pattern.matcher(message).matches()) {
+                return true;
+            }
+        }
         return false;
     }
 
     public String replace(String message) {
-        // TODO
+        for (Pattern pattern : this.patterns) {
+            message = pattern.matcher(message).replaceAll(this.replacement);
+        }
         return message;
     }
 
-    public List<Action> getActions() {
-        return this.actions;
+    public List<String> getActions() {
+        return new ArrayList<String>(this.actions);
     }
 
-    public List<String> getSubstitutions() {
-        return this.substitutions;
+    public String getReplacement() {
+        return this.replacement;
     }
 
-
+    private void parsePatterns(YamlNode patterns) throws YamlException {
+        for (YamlNode node : patterns.getChildrenList()) {
+            String str = node.getString();
+            if (!str.startsWith("/") || !str.endsWith("/")) {
+                str = Pattern.quote(str.substring(1, str.length() - 1));
+            }
+            this.patterns.add(Pattern.compile(str));
+        }
+    }
 }

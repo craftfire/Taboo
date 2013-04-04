@@ -19,25 +19,33 @@
  */
 package com.craftfire.taboo;
 
+import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.craftfire.commons.util.LoggingManager;
+import com.craftfire.commons.yaml.YamlException;
 import com.craftfire.commons.yaml.YamlManager;
+import com.craftfire.commons.yaml.YamlNode;
 
 public class TabooManager {
     private YamlManager config;
     private List<Taboo> taboos;
     private boolean onlyOnce;
     private Map<String, Action> actions;
+    private LoggingManager logger = new LoggingManager("CraftFire.TabooManager", "[Taboo]");
 
-    public TabooManager(YamlManager config) {
+    public TabooManager(YamlManager config) throws YamlException {
         this.config = config;
         loadConfig();
     }
 
-    public void loadConfig() {
-        // TODO
+    public void loadConfig() throws YamlException {
+        this.config.load();
+        this.onlyOnce = this.config.getBoolean("match-once");
+        loadActions();
+        loadTaboos();
     }
 
     public String processMessage(String message, TabooPlayer player) {
@@ -55,14 +63,60 @@ public class TabooManager {
         return message;
     }
 
+    public LoggingManager getLogger() {
+        return this.logger;
+    }
+
     protected void executeActions(Taboo taboo, TabooPlayer player, String message) {
-        Iterator i = taboo.getActions().iterator();
+        Iterator<String> i = taboo.getActions().iterator();
         while (i.hasNext()) {
             Action action = this.actions.get(i.next());
             if (action != null) {
-                action.execute(player, taboo, message);
+                try {
+                    action.execute(player, taboo, message);
+                } catch (Exception e) {
+                    this.logger.stackTrace(e);
+                    // TODO: Catch all throwables, print some friendly warning
+                }
             }
         }
     }
 
+    protected void loadActions() throws YamlException {
+        for (YamlNode node : this.config.getNode("actions").getChildrenList()) {
+            String className = node.getChild("class").getString();
+            Class<?> c = null;
+            try {
+                c = Class.forName(className);
+            } catch (ClassNotFoundException ignore) {
+            }
+            if (c == null || !Action.class.isAssignableFrom(c)) {
+                try {
+                    c = Class.forName("com.craftfire.taboo.actions." + className);
+                } catch (ClassNotFoundException ignore) {
+                }
+            }
+            if (c == null || !Action.class.isAssignableFrom(c)) {
+                // TODO: Try to class-load the class from local directory.
+            }
+            if (c == null || !Action.class.isAssignableFrom(c)) {
+                // TODO: print some nice warning
+                continue;
+            }
+            Constructor<? extends Action> con;
+            try {
+                con = c.asSubclass(Action.class).getConstructor(YamlNode.class);
+                this.actions.put(node.getName(), con.newInstance(node));
+            } catch (Exception e) {
+                this.logger.stackTrace(e);
+                // TODO: print some nice warning
+            }
+        }
+    }
+
+    protected void loadTaboos() throws YamlException {
+        for (YamlNode node : this.config.getNode("taboos").getChildrenList()) {
+            this.taboos.add(new Taboo(node));
+        }
+    }
 }

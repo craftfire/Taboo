@@ -23,18 +23,21 @@ import com.craftfire.taboo.Action;
 import com.craftfire.taboo.Taboo;
 import com.craftfire.taboo.TabooPlayer;
 
+import com.craftfire.commons.yaml.YamlException;
+import com.craftfire.commons.yaml.YamlNode;
+
 public class Reprimend extends Action {
 
-    public Reprimend(String[] args) {
+    public Reprimend(YamlNode args) {
         super(args);
-        if (args.length < 1) {
+        if (!args.hasChild("message")) {
             throw new IllegalArgumentException("Missing argument: message");
         }
     }
 
     @Override
-    public void execute(TabooPlayer target, Taboo taboo, String message) {
-        target.sendMessage(getArgs()[0]);
+    public void execute(TabooPlayer target, Taboo taboo, String message) throws YamlException {
+        target.sendMessage(getArgs().getChild("message").getString());
     }
 
 }
