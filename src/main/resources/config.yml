@@ -1,5 +1,7 @@
 # If set to true, matches only one taboo per message
 match-once: true
+# If set to false, Taboo won't try to load action classes from "actions" directory
+enable-actions-classloader: true
 
 actions:
     kick:

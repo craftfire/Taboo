@@ -21,25 +21,25 @@ package com.craftfire.taboo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 import com.craftfire.commons.yaml.YamlException;
 import com.craftfire.commons.yaml.YamlNode;
 
 public class Taboo {
-    private static Random random = new Random();
-
+    // private static Random random = new Random(); // We were planning random replacements or something, but that can wait.
+    private final TabooManager manager;
     private final String name;
     private final List<Pattern> patterns = new ArrayList<Pattern>();
     private final List<String> actions = new ArrayList<String>();
     private final String includePermission, excludePermission, replacement;
 
-    public Taboo(YamlNode desc) throws YamlException {
+    public Taboo(TabooManager manager, YamlNode desc) throws YamlException, TabooException {
+        this.manager = manager;
         this.name = desc.getName();
 
         if (!desc.hasChild("patterns") || !desc.getChild("patterns").isList()) {
-            throw new IllegalStateException(); // TODO: Throw something better
+            throw new TabooException("Can't create taboo \"" + this.name + "\": no patterns specified (or patterns property is not a list)");
         }
         parsePatterns(desc.getChild("patterns"));
 
@@ -68,7 +68,7 @@ public class Taboo {
                     this.actions.add(node.getString());
                 }
             } else {
-                // TODO: print an error
+                manager.getLogger().warning("Property \"actions\" of taboo \"" + this.name + "\" is not a list! Ignoring it.");
             }
         }
     }
@@ -105,6 +105,10 @@ public class Taboo {
 
     public String getReplacement() {
         return this.replacement;
+    }
+
+    public TabooManager getManager() {
+        return this.manager;
     }
 
     private void parsePatterns(YamlNode patterns) throws YamlException {
