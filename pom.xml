@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <commonsVersion>0.0.1-SNAPSHOT</commonsVersion>
-        <bukkitVersion>1.4.5-R0.3-SNAPSHOT</bukkitVersion>
+        <bukkitVersion>1.5.1-R0.1-SNAPSHOT</bukkitVersion>
         <spoutVersion>dev-SNAPSHOT</spoutVersion>
         <buildNumber>0</buildNumber>
     </properties>
@@ -40,10 +40,10 @@
     </scm>
 
     <!-- Continuous integration -->
-    <!--<ciManagement>
+    <ciManagement>
         <system>jenkins</system>
         <url>http://build.craftfire.com/job/Taboo</url>
-    </ciManagement> NOT SET UP YET-->
+    </ciManagement>
 
     <!-- Repository locations -->
     <repositories>
@@ -71,6 +71,7 @@
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
             <version>${bukkitVersion}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.spout</groupId>
