@@ -1,7 +1,7 @@
 /*
  * This file is part of Taboo.
  *
- * Copyright (c) 2013-2013, CraftFire <http://www.craftfire.com/>
+ * Copyright (c) 2013 CraftFire <http://www.craftfire.com/>
  * Taboo is licensed under the GNU Lesser General Public License.
  *
  * Taboo is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ import com.craftfire.commons.yaml.YamlException;
 import com.craftfire.commons.yaml.YamlNode;
 
 public class Taboo {
-    // private static Random random = new Random(); // We were planning random replacements or something, but that can wait.
+    //private static Random random = new Random(); // We were planning random replacements or something, but that can wait.
     private final TabooManager manager;
     private final String name;
     private final List<Pattern> patterns = new ArrayList<Pattern>();

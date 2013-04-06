@@ -1,7 +1,7 @@
 /*
  * This file is part of Taboo.
  *
- * Copyright (c) 2013-2013, CraftFire <http://www.craftfire.com/>
+ * Copyright (c) 2013 CraftFire <http://www.craftfire.com/>
  * Taboo is licensed under the GNU Lesser General Public License.
  *
  * Taboo is free software: you can redistribute it and/or modify
@@ -27,7 +27,6 @@ import com.craftfire.commons.yaml.YamlException;
 import com.craftfire.commons.yaml.YamlNode;
 
 public class Reprimend extends Action {
-
     public Reprimend(YamlNode args) {
         super(args);
         if (!args.hasChild("message")) {
@@ -39,5 +38,4 @@ public class Reprimend extends Action {
     public void execute(TabooPlayer target, Taboo taboo, String message) throws YamlException {
         target.sendMessage(getArgs().getChild("message").getString());
     }
-
 }

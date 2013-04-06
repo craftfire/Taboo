@@ -1,7 +1,7 @@
 /*
  * This file is part of Taboo.
  *
- * Copyright (c) 2013-2013, CraftFire <http://www.craftfire.com/>
+ * Copyright (c) 2013 CraftFire <http://www.craftfire.com/>
  * Taboo is licensed under the GNU Lesser General Public License.
  *
  * Taboo is free software: you can redistribute it and/or modify
@@ -20,7 +20,6 @@
 package com.craftfire.taboo;
 
 public interface TabooPlayer {
-
     String getName();
 
     boolean checkPermission(String node);

@@ -1,0 +1,9 @@
+name: ${project.name}
+version: ${project.version}-b${buildNumber}
+description: ${project.description}
+website: ${project.url}
+author: ${project.organization.name}
+
+main: ${project.groupId}.${project.artifactId}.layer.spout.${project.artifactName}
+load: startup
+platform: SERVER

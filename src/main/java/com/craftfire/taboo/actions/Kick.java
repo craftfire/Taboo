@@ -1,7 +1,7 @@
 /*
  * This file is part of Taboo.
  *
- * Copyright (c) 2013-2013, CraftFire <http://www.craftfire.com/>
+ * Copyright (c) 2013 CraftFire <http://www.craftfire.com/>
  * Taboo is licensed under the GNU Lesser General Public License.
  *
  * Taboo is free software: you can redistribute it and/or modify
@@ -27,7 +27,6 @@ import com.craftfire.commons.yaml.YamlException;
 import com.craftfire.commons.yaml.YamlNode;
 
 public class Kick extends Action {
-
     public Kick(YamlNode args) {
         super(args);
     }
@@ -40,5 +39,4 @@ public class Kick extends Action {
             target.kick(null);
         }
     }
-
 }
