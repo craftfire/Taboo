@@ -106,25 +106,17 @@
         <resources>
             <!-- Static resources -->
             <resource>
-                <targetPath>.</targetPath>
                 <filtering>false</filtering>
-                <directory>${basedir}</directory>
+                <directory>.</directory>
+                <targetPath>.</targetPath>
                 <includes>
                     <include>LICENSE.txt</include>
-                </includes>
-            </resource>
-            <resource>
-                <targetPath>.</targetPath>
-                <filtering>true</filtering>
-                <directory>${basedir}/src/main/resources</directory>
-                <includes>
-                    <include>**/*</include>
                 </includes>
             </resource>
             <!-- Filtered resources -->
             <resource>
                 <filtering>true</filtering>
-                <directory>${project.basedir}/src/main/resources</directory>
+                <directory>src/main/resources</directory>
                 <targetPath>.</targetPath>
                 <includes>
                     <include>plugin.yml</include>
@@ -151,7 +143,7 @@
                             <quiet>true</quiet>
                             <encoding>UTF-8</encoding>
                             <strictCheck>true</strictCheck>
-                            <header>${project.basedir}/HEADER.txt</header>
+                            <header>HEADER.txt</header>
                             <mapping>
                                 <java>SLASHSTAR_STYLE</java>
                             </mapping>
@@ -208,6 +200,56 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Javadocs GitHub deployment -->
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.7</version>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <server>github-deploy</server>
+                            <repositoryName>${project.name}</repositoryName>
+                            <repositoryOwner>${project.organization.name}</repositoryOwner>
+                            <branch>refs/heads/gh-pages</branch>
+                            <merge>true</merge>
+                            <path>commons</path>
+                            <message>Javadocs for ${project.name} ${project.version}-b${buildNumber}</message>
+                        </configuration>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <!-- Reporting configuration -->
+    <reporting>
+        <!-- Reporting plugins -->
+        <plugins>
+            <!-- Javadoc creation plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <windowtitle>Javadoc | ${project.name} ${project.version}-b${buildNumber}</windowtitle>
+                    <doctitle><![CDATA[${project.name} ${project.version}-b${buildNumber}]]></doctitle>
+                    <header><![CDATA[<a href="https://github.com/CraftFire/${project.name}" target="_blank"><img src="#"></a>]]></header>
+                    <bottom><![CDATA[Copyright (c) {inceptionYear} <a href="${project.organization.url}" target="_blank">${project.organization.name}</a>. ${project.name} is licensed under <a href="http://www.gnu.org/licenses/lgpl.html" target="_blank">GNU Lesser General Public License Version 3</a>]]></bottom>
+                    <stylesheetfile>src/main/javadoc/stylesheet.css</stylesheetfile>
+                    <author>false</author>
+                    <version>false</version>
+                    <detectLinks>true</detectLinks>
+                    <linksource>true</linksource>
+                    <links>
+                        <link>http://${project.artifactID}.craftfire.com/apidocs</link>
+                    </links>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
