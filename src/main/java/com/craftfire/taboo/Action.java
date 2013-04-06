@@ -32,5 +32,5 @@ public abstract class Action {
         return this.args;
     }
 
-    public abstract void execute(TabooPlayer target, Taboo taboo, String message) throws Exception;
+    public abstract void execute(TabooPlayer target, Taboo taboo, String message);
 }

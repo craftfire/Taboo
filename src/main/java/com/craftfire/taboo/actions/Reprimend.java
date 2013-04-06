@@ -35,7 +35,11 @@ public class Reprimend extends Action {
     }
 
     @Override
-    public void execute(TabooPlayer target, Taboo taboo, String message) throws YamlException {
-        target.sendMessage(getArgs().getChild("message").getString());
+    public void execute(TabooPlayer target, Taboo taboo, String message) {
+        try {
+            target.sendMessage(getArgs().getChild("message").getString());
+        } catch (YamlException e) {
+            throw new RuntimeException(e); // Shouldn't happen, we checked hasChild() in the construcotr.
+        }
     }
 }

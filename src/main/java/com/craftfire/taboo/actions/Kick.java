@@ -32,9 +32,13 @@ public class Kick extends Action {
     }
 
     @Override
-    public void execute(TabooPlayer target, Taboo taboo, String message) throws YamlException {
+    public void execute(TabooPlayer target, Taboo taboo, String message) {
         if (getArgs().hasChild("message")) {
-            target.kick(getArgs().getChild("message").getString());
+            try {
+                target.kick(getArgs().getChild("message").getString());
+            } catch (YamlException e) {
+                throw new RuntimeException(e); // Should never happen, we checked hasChild().
+            }
         } else {
             target.kick(null);
         }
