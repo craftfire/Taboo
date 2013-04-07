@@ -188,11 +188,7 @@
                 <executions>
                     <execution>
                         <configuration>
-                            <artifactSet>
-                                <includes>
-                                    <include>com.craftfire:*</include>
-                                </includes>
-                            </artifactSet>
+                            <minimizeJar>true</minimizeJar>
                         </configuration>
                         <phase>package</phase>
                         <goals>
