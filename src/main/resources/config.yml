@@ -9,11 +9,11 @@ actions:
     kick:
         class: Kick
         message: "You have been kicked for using bad words"
-    reprimend1:
-        class: Reprimend
+    msg1:
+        class: Message
         message: "Don't say this again"
-    reprimend2:
-        class: Reprimend
+    msg2:
+        class: Message
         message: "Shut up!"
 
 taboos:
@@ -23,7 +23,7 @@ taboos:
         replacement: "darn"
         includePermission: taboo.include.damn
         actions:
-            - reprimend1
+            - msg1
     admin-whine:
         patterns:
             - /\Aadmin\Z/

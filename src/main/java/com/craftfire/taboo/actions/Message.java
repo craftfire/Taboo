@@ -26,8 +26,8 @@ import com.craftfire.taboo.TabooPlayer;
 import com.craftfire.commons.yaml.YamlException;
 import com.craftfire.commons.yaml.YamlNode;
 
-public class Reprimend extends Action {
-    public Reprimend(YamlNode args) {
+public class Message extends Action {
+    public Message(YamlNode args) {
         super(args);
         if (!args.hasChild("message")) {
             throw new IllegalArgumentException("Missing argument: message");
