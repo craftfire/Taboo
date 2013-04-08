@@ -96,8 +96,10 @@ public class Taboo {
     }
 
     public String replace(String message) {
-        for (Pattern pattern : this.patterns) {
-            message = pattern.matcher(message).replaceAll(this.replacement);
+        if (this.replacement != null) {
+            for (Pattern pattern : this.patterns) {
+                message = pattern.matcher(message).replaceAll(this.replacement);
+            }
         }
         return message;
     }
