@@ -130,11 +130,11 @@ public class Taboo {
         for (YamlNode node : patterns.getChildrenList()) {
             String str = node.getString();
             if (!str.startsWith("/") || !str.endsWith("/")) {
-                str = "\\b" + Pattern.quote(str) + "\\b";
+                str = "(?i)\\b" + Pattern.quote(str) + "\\b";
             } else {
                 str = str.substring(1, str.length() - 1);
             }
-            this.patterns.add(Pattern.compile(str));
+            this.patterns.add(Pattern.compile(str, Pattern.UNICODE_CASE));
         }
     }
 }
