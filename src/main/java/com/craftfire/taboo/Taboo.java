@@ -79,13 +79,16 @@ public class Taboo {
 
     public boolean matches(String message, TabooPlayer player) {
         if (this.includePermission != null && !player.checkPermission(this.includePermission)) {
+            this.manager.getLogger().debug("Player doesn't have the include permission: " + this.includePermission);
             return false;
         }
         if (this.excludePermission != null && player.checkPermission(this.excludePermission)) {
+            this.manager.getLogger().debug("Player has the exclude permission: " + this.excludePermission);
             return false;
         }
         for (Pattern pattern : this.patterns) {
-            if (pattern.matcher(message).matches()) {
+            this.manager.getLogger().debug("Checking pattern: " + pattern.toString());
+            if (pattern.matcher(message).find()) {
                 return true;
             }
         }
@@ -115,7 +118,9 @@ public class Taboo {
         for (YamlNode node : patterns.getChildrenList()) {
             String str = node.getString();
             if (!str.startsWith("/") || !str.endsWith("/")) {
-                str = Pattern.quote(str.substring(1, str.length() - 1));
+                str = Pattern.quote(str);
+            } else {
+                str = str.substring(1, str.length() - 1);
             }
             this.patterns.add(Pattern.compile(str));
         }

@@ -75,10 +75,13 @@ public class TabooManager {
     }
 
     public String processMessage(String message, TabooPlayer player) {
+        getLogger().debug("Processing message: \"" + message + "\" by player: " + player.getName());
         Iterator<Taboo> i = this.taboos.iterator();
         while (i.hasNext()) {
             Taboo taboo = i.next();
+            getLogger().debug("Checking taboo " + taboo.getName());
             if (taboo.matches(message, player)) {
+                getLogger().debug("It matches!");
                 executeActions(taboo, player, message);
                 message = taboo.replace(message);
                 if (this.onlyOnce) {
@@ -101,9 +104,11 @@ public class TabooManager {
     }
 
     protected void executeActions(Taboo taboo, TabooPlayer player, String message) {
+        getLogger().debug("Executing actions for taboo " + taboo.getName() + " on player " + player.getName());
         for (String actionName : taboo.getActions()) {
             Action action = this.actions.get(actionName);
             if (action != null) {
+                getLogger().debug("Executing action: " + actionName);
                 try {
                     action.execute(player, taboo, message);
                 } catch (Throwable t) {
@@ -117,6 +122,7 @@ public class TabooManager {
     protected void loadSettings(YamlManager config) {
         this.onlyOnce = config.getBoolean("match-once");
         this.enableClassLoader = config.getBoolean("enable-actions-classloader");
+        this.logger.setDebug(config.getBoolean("debug"));
     }
 
     protected void setupClassLoader() {
@@ -171,6 +177,7 @@ public class TabooManager {
                 this.logger.warning("Can't load action \"" + node.getName() + "\": exception during instantiation of class \"" + c.getName() + "\"");
             }
         }
+        getLogger().info("Loaded " + this.actions.size() + " of " + config.getNode("actions").getChildrenCount() + " actions");
     }
 
     protected void loadTaboos(YamlManager config) throws YamlException {
@@ -182,16 +189,28 @@ public class TabooManager {
                 this.logger.warning("Unable to create taboo \"" + node.getName() + "\"");
             }
         }
+        getLogger().info("Loaded " + this.taboos.size() + " of " + config.getNode("taboos").getChildrenCount() + " taboos");
     }
 
     protected void defaultFile(File directory, String resourceDirectory, String file) {
+        getLogger().debug("Checking default file " + file + " in " + directory.getPath() + ", default file in " + resourceDirectory);
         if (!directory.exists()) {
+            getLogger().info("Creating directory " + directory.getPath());
             directory.mkdirs();
         }
         File actual = new File(directory, file);
+        getLogger().debug("Checking if file " + actual.getPath() + " exists");
         if (!actual.exists()) {
-            InputStream input = getClass().getClassLoader().getResourceAsStream(resourceDirectory + File.separator + file);
+            String resourcePath;
+            if (resourceDirectory.isEmpty()) {
+                resourcePath = file;
+            } else {
+                resourcePath = resourceDirectory + File.separator + file;
+            }
+            getLogger().debug("File " + actual.getPath() + " doesn't exist. Checking default file in classpath at " + resourcePath);
+            InputStream input = getClass().getClassLoader().getResourceAsStream(resourcePath);
             if (input != null) {
+                getLogger().debug("Found default file, attempting to copy");
                 FileOutputStream output = null;
                 try {
                     output = new FileOutputStream(actual);

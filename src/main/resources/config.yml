@@ -2,6 +2,8 @@
 match-once: true
 # If set to false, Taboo won't try to load action classes from "actions" directory
 enable-actions-classloader: true
+# If set to true, enabled debug log messages
+debug: false
 
 actions:
     kick:
