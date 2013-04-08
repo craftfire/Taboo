@@ -159,7 +159,7 @@ public class TabooManager {
             if (c == null || !Action.class.isAssignableFrom(c)) {
                 try {
                     if (this.classLoader != null) {
-                        c = this.classLoader.loadClass(className);
+                        c = Class.forName(className, true, this.classLoader);
                     }
                 } catch (ClassNotFoundException e) {
                 }
@@ -172,7 +172,7 @@ public class TabooManager {
             try {
                 con = c.asSubclass(Action.class).getConstructor(YamlNode.class);
                 this.actions.put(node.getName(), con.newInstance(node));
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 this.logger.stackTrace(e);
                 this.logger.warning("Can't load action \"" + node.getName() + "\": exception during instantiation of class \"" + c.getName() + "\"");
             }
