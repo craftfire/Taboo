@@ -47,6 +47,7 @@ public class TabooPlugin extends JavaPlugin implements Listener {
             this.logger.stackTrace(e);
             this.logger.severe("Error occurred during initialization of Taboo. Disabling self.");
             getServer().getPluginManager().disablePlugin(this);
+            return;
         }
         getServer().getPluginManager().registerEvents(this, this);
         this.logger.info("Taboo enabled");
