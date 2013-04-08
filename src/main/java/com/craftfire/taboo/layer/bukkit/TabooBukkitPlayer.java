@@ -30,6 +30,10 @@ public class TabooBukkitPlayer implements TabooPlayer {
         this.player = player;
     }
 
+    public Player getPlayer() {
+        return this.player;
+    }
+
     @Override
     public String getName() {
         return this.player.getName();

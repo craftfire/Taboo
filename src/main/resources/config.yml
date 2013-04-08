@@ -24,3 +24,9 @@ taboos:
         includePermission: taboo.include.damn
         actions:
             - reprimend1
+    admin-whine:
+        patterns:
+            - /\Aadmin\Z/
+        mute: true
+        actions:
+            - kick

@@ -33,6 +33,7 @@ public class Taboo {
     private final List<Pattern> patterns = new ArrayList<Pattern>();
     private final List<String> actions = new ArrayList<String>();
     private final String includePermission, excludePermission, replacement;
+    private final boolean mute;
 
     public Taboo(TabooManager manager, YamlNode desc) throws YamlException, TabooException {
         this.manager = manager;
@@ -59,6 +60,12 @@ public class Taboo {
             this.replacement = desc.getChild("replacement").getString();
         } else {
             this.replacement = null;
+        }
+
+        if (desc.hasChild("mute")) {
+            this.mute = desc.getChild("mute").getBool(false);
+        } else {
+            this.mute = false;
         }
 
         if (desc.hasChild("actions")) {
@@ -96,6 +103,9 @@ public class Taboo {
     }
 
     public String replace(String message) {
+        if (this.mute) {
+            return "";
+        }
         if (this.replacement != null) {
             for (Pattern pattern : this.patterns) {
                 message = pattern.matcher(message).replaceAll(this.replacement);
@@ -120,7 +130,7 @@ public class Taboo {
         for (YamlNode node : patterns.getChildrenList()) {
             String str = node.getString();
             if (!str.startsWith("/") || !str.endsWith("/")) {
-                str = Pattern.quote(str);
+                str = "\\b" + Pattern.quote(str) + "\\b";
             } else {
                 str = str.substring(1, str.length() - 1);
             }

@@ -77,9 +77,14 @@ public class TabooPlugin extends JavaPlugin implements Listener {
         return false;
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         this.logger.debug("Got an AsyncPlayerChatEvent");
-        event.setMessage(this.manager.processMessage(event.getMessage(), new TabooBukkitPlayer(event.getPlayer())));
+        String message = this.manager.processMessage(event.getMessage(), new TabooBukkitPlayer(event.getPlayer()));
+        if (message.isEmpty()) {
+            event.setCancelled(true);
+            return;
+        }
+        event.setMessage(message);
     }
 }
