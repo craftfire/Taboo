@@ -35,11 +35,25 @@ public class Message extends Action {
     }
 
     @Override
-    public void execute(TabooPlayer target, Taboo taboo, String message) {
+    public void execute(TabooPlayer player, Taboo taboo, String message) {
         try {
-            target.sendMessage(format(getArgs().getChild("message").getString(), taboo, target, message));
+            String msg = format(getArgs().getChild("message").getString(), taboo, player, message);
+            if (getArgs().hasChild("to")) {
+                String to = getArgs().getChild("to").getString();
+                if (to != null && !to.isEmpty()) {
+                    to = format(to, taboo, player, message);
+                    TabooPlayer target = taboo.getManager().getLayer().getPlayer(to);
+                    if (target != null) {
+                        target.sendMessage(msg);
+                    } else {
+                        taboo.getManager().getLogger().info("Action: " + getArgs().getName() + ", taboo: " + taboo.getName() + "cannot send message to player: " + to + " - player not found.");
+                    }
+                    return;
+                }
+            }
+            player.sendMessage(msg);
         } catch (YamlException e) {
-            throw new RuntimeException(e); // Shouldn't happen, we checked hasChild() in the construcotr.
+            throw new RuntimeException(e); // Shouldn't happen, we checked hasChild() in the constructor.
         }
     }
 }

@@ -38,6 +38,9 @@ public abstract class Action {
     public abstract void execute(TabooPlayer target, Taboo taboo, String message);
 
     public static String format(String text, Taboo taboo, TabooPlayer player, String message) {
+        if (text == null) {
+            return null;
+        }
         String str = text;
         str = str.replaceAll("<player>", player.getName());
         str = str.replaceAll("<taboo>", taboo.getName());
