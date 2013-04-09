@@ -122,6 +122,10 @@ public class Taboo {
         return this.replacement;
     }
 
+    public List<Pattern> getPatterns() {
+        return new ArrayList<Pattern>(this.patterns);
+    }
+
     public TabooManager getManager() {
         return this.manager;
     }

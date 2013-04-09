@@ -35,7 +35,7 @@ public class Kick extends Action {
     public void execute(TabooPlayer target, Taboo taboo, String message) {
         if (getArgs().hasChild("message")) {
             try {
-                target.kick(getArgs().getChild("message").getString());
+                target.kick(format(getArgs().getChild("message").getString(), taboo, target, message));
             } catch (YamlException e) {
                 throw new RuntimeException(e); // Should never happen, we checked hasChild().
             }

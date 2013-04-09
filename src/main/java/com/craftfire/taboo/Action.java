@@ -19,6 +19,9 @@
  */
 package com.craftfire.taboo;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.craftfire.commons.yaml.YamlNode;
 
 public abstract class Action {
@@ -33,4 +36,21 @@ public abstract class Action {
     }
 
     public abstract void execute(TabooPlayer target, Taboo taboo, String message);
+
+    public static String format(String text, Taboo taboo, TabooPlayer player, String message) {
+        String str = text;
+        str = str.replaceAll("<player>", player.getName());
+        str = str.replaceAll("<taboo>", taboo.getName());
+        str = str.replaceAll("<replacement>", taboo.getReplacement());
+        str = str.replaceAll("<mesage>", message);
+
+        for (Pattern pattern : taboo.getPatterns()) {
+            Matcher matcher = pattern.matcher(message);
+            if (matcher.find()) {
+                str = str.replaceAll("<match>", matcher.group());
+                break;
+            }
+        }
+        return str;
+    }
 }

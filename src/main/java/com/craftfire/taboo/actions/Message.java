@@ -37,7 +37,7 @@ public class Message extends Action {
     @Override
     public void execute(TabooPlayer target, Taboo taboo, String message) {
         try {
-            target.sendMessage(getArgs().getChild("message").getString());
+            target.sendMessage(format(getArgs().getChild("message").getString(), taboo, target, message));
         } catch (YamlException e) {
             throw new RuntimeException(e); // Shouldn't happen, we checked hasChild() in the construcotr.
         }
