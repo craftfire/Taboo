@@ -53,4 +53,9 @@ public class TabooBukkitPlayer implements TabooPlayer {
     public void kick(String message) {
         this.player.kickPlayer(message);
     }
+
+    @Override
+    public void executeCommand(String command) {
+        this.player.getServer().dispatchCommand(this.player, command);
+    }
 }

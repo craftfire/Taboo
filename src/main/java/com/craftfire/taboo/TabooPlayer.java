@@ -27,4 +27,6 @@ public interface TabooPlayer {
     void sendMessage(String message);
 
     void kick(String message);
+
+    void executeCommand(String command);
 }

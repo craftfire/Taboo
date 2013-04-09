@@ -47,8 +47,10 @@ public class TabooManager {
     private Map<String, Action> actions;
     private LoggingManager logger = new LoggingManager("CraftFire.TabooManager", "[Taboo]");
     private URLClassLoader classLoader = null;
+    private Layer layer;
 
-    public TabooManager(File directory) {
+    public TabooManager(Layer layer, File directory) {
+        this.layer = layer;
         this.directory = directory;
     }
 
@@ -101,6 +103,10 @@ public class TabooManager {
             throw new IllegalArgumentException("The loggingManager can't be null!");
         }
         this.logger = loggingManager;
+    }
+
+    public Layer getLayer() {
+        return this.layer;
     }
 
     protected void executeActions(Taboo taboo, TabooPlayer player, String message) {

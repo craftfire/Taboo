@@ -39,7 +39,7 @@ public class TabooPlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         this.logger = new LoggingManager(getLogger().getName(), "[Taboo]");
         this.logger.info("Enabling Taboo");
-        this.manager = new TabooManager(getDataFolder());
+        this.manager = new TabooManager(new BukkitLayer(getServer()), getDataFolder());
         this.manager.setLoggingManager(this.logger);
         try {
             this.manager.load();
