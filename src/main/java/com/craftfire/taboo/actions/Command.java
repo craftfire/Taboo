@@ -32,7 +32,7 @@ public class Command extends Action {
                         executor.executeCommand(cmd);
                     } else {
                         taboo.getManager().getLogger()
-                                .info("Action: " + getArgs().getName() + ", taboo: " + taboo.getName() + "cannot execute command as player: " + username + " - player not found.");
+                        .info("Action: " + getArgs().getName() + ", taboo: " + taboo.getName() + " cannot execute command as player: " + username + " - player not found.");
                     }
                     return;
                 }

@@ -46,7 +46,7 @@ public class Message extends Action {
                     if (target != null) {
                         target.sendMessage(msg);
                     } else {
-                        taboo.getManager().getLogger().info("Action: " + getArgs().getName() + ", taboo: " + taboo.getName() + "cannot send message to player: " + to + " - player not found.");
+                        taboo.getManager().getLogger().info("Action: " + getArgs().getName() + ", taboo: " + taboo.getName() + " cannot send message to player: " + to + " - player not found.");
                     }
                     return;
                 }

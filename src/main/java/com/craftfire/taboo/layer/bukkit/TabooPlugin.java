@@ -28,21 +28,27 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.craftfire.taboo.TabooException;
 import com.craftfire.taboo.TabooManager;
+import com.craftfire.taboo.TabooPlayer;
 
 import com.craftfire.commons.util.LoggingManager;
 
 public class TabooPlugin extends JavaPlugin implements Listener {
     private LoggingManager logger;
     private TabooManager manager;
+    private final Object managerLock = new Object();
 
     @Override
     public void onEnable() {
         this.logger = new LoggingManager(getLogger().getName(), "[Taboo]");
         this.logger.info("Enabling Taboo");
-        this.manager = new TabooManager(new BukkitLayer(getServer()), getDataFolder());
+        synchronized (this.managerLock) {
+            this.manager = new TabooManager(new BukkitLayer(getServer()), getDataFolder());
+        }
         this.manager.setLoggingManager(this.logger);
         try {
-            this.manager.load();
+            synchronized (this.managerLock) {
+                this.manager.load();
+            }
         } catch (TabooException e) {
             this.logger.stackTrace(e);
             this.logger.severe("Error occurred during initialization of Taboo. Disabling self.");
@@ -55,7 +61,9 @@ public class TabooPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        this.manager = null;
+        synchronized (this.managerLock) {
+            this.manager = null;
+        }
         this.logger.info("Taboo disabled.");
     }
 
@@ -65,7 +73,9 @@ public class TabooPlugin extends JavaPlugin implements Listener {
             sender.sendMessage("Reloading Taboo...");
             this.logger.info("Reloading Taboo (command issued by " + sender.getName() + ")");
             try {
-                this.manager.load();
+                synchronized (this.managerLock) {
+                    this.manager.load();
+                }
                 sender.sendMessage("Taboo reloaded");
                 this.logger.info("Taboo reloaded");
             } catch (TabooException e) {
@@ -80,7 +90,11 @@ public class TabooPlugin extends JavaPlugin implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         this.logger.debug("Got an AsyncPlayerChatEvent");
-        String message = this.manager.processMessage(event.getMessage(), new TabooBukkitPlayer(event.getPlayer()));
+        String message = event.getMessage();
+        TabooPlayer player = new TabooBukkitPlayer(event.getPlayer());
+        synchronized (this.managerLock) {
+            message = this.manager.processMessage(message, player);
+        }
         if (message.isEmpty()) {
             event.setCancelled(true);
             return;
