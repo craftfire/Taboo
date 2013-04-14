@@ -66,6 +66,8 @@ public class TabooManager {
             loadSettings(config);
             if (this.enableClassLoader) {
                 setupClassLoader();
+            } else {
+                this.classLoader = null;
             }
 
             try {
