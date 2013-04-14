@@ -21,7 +21,7 @@ taboos:
         patterns:
             - "damn"
         replacement: "darn"
-        includePermission: taboo.include.damn
+        include-permission: taboo.include.damn
         actions:
             - msg1
     admin-whine:

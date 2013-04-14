@@ -44,14 +44,14 @@ public class Taboo {
         }
         parsePatterns(desc.getChild("patterns"));
 
-        if (desc.hasChild("includePermission")) {
-            this.includePermission = desc.getChild("includePermission").getString();
+        if (desc.hasChild("include-permission")) {
+            this.includePermission = desc.getChild("include-permission").getString();
         } else {
             this.includePermission = null;
         }
 
-        if (desc.hasChild("excludePermission")) {
-            this.excludePermission = desc.getChild("excludePermission").getString();
+        if (desc.hasChild("exclude-permission")) {
+            this.excludePermission = desc.getChild("exclude-permission").getString();
         } else {
             this.excludePermission = null;
         }
