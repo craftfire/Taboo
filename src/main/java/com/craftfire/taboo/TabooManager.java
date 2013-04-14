@@ -20,12 +20,13 @@
 package com.craftfire.taboo;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -61,32 +62,33 @@ public class TabooManager {
             throw new TabooException("Failed to load the config");
         }
 
-        loadSettings(config);
-        if (this.enableClassLoader) {
-            setupClassLoader();
-        }
+        synchronized (this) {
+            loadSettings(config);
+            if (this.enableClassLoader) {
+                setupClassLoader();
+            }
 
-        this.actions = new HashMap<String, Action>();
-        this.taboos = new ArrayList<Taboo>();
-        try {
-            loadActions(config);
-            loadTaboos(config);
-        } catch (YamlException e) {
-            throw new TabooException("Exception occurred during config loading.", e);
+            try {
+                this.actions = loadActions(config);
+                this.taboos = loadTaboos(config);
+            } catch (YamlException e) {
+                throw new TabooException("Exception occurred during config loading.", e);
+            }
         }
     }
 
     public String processMessage(String message, TabooPlayer player) {
-        getLogger().debug("Processing message: \"" + message + "\" by player: " + player.getName());
+        this.logger.debug("Processing message: \"" + message + "\" by player: " + player.getName());
         Iterator<Taboo> i = this.taboos.iterator();
+        boolean onlyOnce = this.onlyOnce;   // For thread safety
         while (i.hasNext()) {
             Taboo taboo = i.next();
-            getLogger().debug("Checking taboo " + taboo.getName());
+            this.logger.debug("Checking taboo " + taboo.getName());
             if (taboo.matches(message, player)) {
-                getLogger().debug("It matches!");
+                this.logger.debug("It matches!");
                 executeActions(taboo, player, message);
                 message = taboo.replace(message);
-                if (this.onlyOnce) {
+                if (onlyOnce) {
                     break;
                 }
             }
@@ -110,11 +112,12 @@ public class TabooManager {
     }
 
     protected void executeActions(Taboo taboo, TabooPlayer player, String message) {
-        getLogger().debug("Executing actions for taboo " + taboo.getName() + " on player " + player.getName());
+        this.logger.debug("Executing actions for taboo " + taboo.getName() + " on player " + player.getName());
+        Map<String, Action> actions = this.actions; // For thread safety
         for (String actionName : taboo.getActions()) {
-            Action action = this.actions.get(actionName);
+            Action action = actions.get(actionName);
             if (action != null) {
-                getLogger().debug("Executing action: " + actionName);
+                this.logger.debug("Executing action: " + actionName);
                 try {
                     action.execute(player, taboo, message);
                 } catch (Throwable t) {
@@ -148,7 +151,9 @@ public class TabooManager {
         }
     }
 
-    protected void loadActions(YamlManager config) throws YamlException {
+    protected Map<String, Action> loadActions(YamlManager config) throws YamlException {
+        Map<String, Action> actions = new HashMap<String, Action>();
+        ClassLoader classLoader = this.classLoader; // For thread safety
         for (YamlNode node : config.getNode("actions").getChildrenList()) {
             String className = node.getChild("class").getString();
             Class<?> c = null;
@@ -164,8 +169,8 @@ public class TabooManager {
             }
             if (c == null || !Action.class.isAssignableFrom(c)) {
                 try {
-                    if (this.classLoader != null) {
-                        c = Class.forName(className, true, this.classLoader);
+                    if (classLoader != null) {
+                        c = Class.forName(className, true, classLoader);
                     }
                 } catch (ClassNotFoundException e) {
                 }
@@ -177,35 +182,38 @@ public class TabooManager {
             Constructor<? extends Action> con;
             try {
                 con = c.asSubclass(Action.class).getConstructor(YamlNode.class);
-                this.actions.put(node.getName(), con.newInstance(node));
+                actions.put(node.getName(), con.newInstance(node));
             } catch (Throwable e) {
                 this.logger.stackTrace(e);
                 this.logger.warning("Can't load action \"" + node.getName() + "\": exception during instantiation of class \"" + c.getName() + "\"");
             }
         }
-        getLogger().info("Loaded " + this.actions.size() + " of " + config.getNode("actions").getChildrenCount() + " actions");
+        this.logger.info("Loaded " + actions.size() + " of " + config.getNode("actions").getChildrenCount() + " actions");
+        return actions;
     }
 
-    protected void loadTaboos(YamlManager config) throws YamlException {
+    protected List<Taboo> loadTaboos(YamlManager config) throws YamlException {
+        List<Taboo> taboos = new ArrayList<Taboo>();
         for (YamlNode node : config.getNode("taboos").getChildrenList()) {
             try {
-                this.taboos.add(new Taboo(this, node));
+                taboos.add(new Taboo(this, node));
             } catch (TabooException e) {
                 this.logger.stackTrace(e);
                 this.logger.warning("Unable to create taboo \"" + node.getName() + "\"");
             }
         }
-        getLogger().info("Loaded " + this.taboos.size() + " of " + config.getNode("taboos").getChildrenCount() + " taboos");
+        this.logger.info("Loaded " + taboos.size() + " of " + config.getNode("taboos").getChildrenCount() + " taboos");
+        return taboos;
     }
 
     protected void defaultFile(File directory, String resourceDirectory, String file) {
-        getLogger().debug("Checking default file " + file + " in " + directory.getPath() + ", default file in " + resourceDirectory);
+        this.logger.debug("Checking default file " + file + " in " + directory.getPath() + ", default file in " + resourceDirectory);
         if (!directory.exists()) {
-            getLogger().info("Creating directory " + directory.getPath());
+            this.logger.info("Creating directory " + directory.getPath());
             directory.mkdirs();
         }
         File actual = new File(directory, file);
-        getLogger().debug("Checking if file " + actual.getPath() + " exists");
+        this.logger.debug("Checking if file " + actual.getPath() + " exists");
         if (!actual.exists()) {
             String resourcePath;
             if (resourceDirectory.isEmpty()) {
@@ -213,29 +221,34 @@ public class TabooManager {
             } else {
                 resourcePath = resourceDirectory + File.separator + file;
             }
-            getLogger().debug("File " + actual.getPath() + " doesn't exist. Checking default file in classpath at " + resourcePath);
+            this.logger.debug("File " + actual.getPath() + " doesn't exist. Checking default file in classpath at " + resourcePath);
             InputStream input = getClass().getClassLoader().getResourceAsStream(resourcePath);
             if (input != null) {
-                getLogger().debug("Found default file, attempting to copy");
-                FileOutputStream output = null;
+                this.logger.debug("Found default file, attempting to copy");
+                RandomAccessFile output = null;
+                FileLock lock = null;
                 try {
-                    output = new FileOutputStream(actual);
+                    output = new RandomAccessFile(actual, "rw");
+                    lock = output.getChannel().lock();
                     byte[] buf = new byte[8192];
                     int length = 0;
                     while ((length = input.read(buf)) > 0) {
                         output.write(buf, 0, length);
                     }
-                    getLogger().info("Written default setup for " + file);
+                    this.logger.info("Written default setup for " + file);
                 } catch (Exception e) {
-                    getLogger().stackTrace(e);
+                    this.logger.stackTrace(e);
                 } finally {
                     try {
                         input.close();
+                        if (lock != null) {
+                            lock.release();
+                        }
                         if (output != null) {
                             output.close();
                         }
                     } catch (Exception e) {
-                        getLogger().stackTrace(e);
+                        this.logger.stackTrace(e);
                     }
                 }
             }
