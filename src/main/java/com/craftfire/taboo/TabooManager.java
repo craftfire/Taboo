@@ -135,10 +135,28 @@ public class TabooManager {
         return this.layer;
     }
 
+    public void fireAction(String actionName, TabooPlayer player) throws TabooException {
+        this.logger.debug("Action " + actionName + " fired on " + player.getName());
+        if (!this.loaded) {
+            this.logger.warning("Method fireAction called when TabooManager is not loaded yet!");
+            return;
+        }
+        Action action = this.actions.get(actionName);
+        if (action == null) {
+            throw new TabooException("Action \"" + actionName + "\" not found.");
+        }
+        this.logger.debug("Executing action: " + actionName);
+        try {
+            action.execute(player, new AlwaysMatchingTaboo(this), "");
+        } catch (Throwable t) {
+            throw new TabooException("Exception ocurred when executing action \"" + actionName + "\"", t);
+        }
+    }
+
     protected void executeActions(Taboo taboo, TabooPlayer player, String message) {
         this.logger.debug("Executing actions for taboo " + taboo.getName() + " on player " + player.getName());
         if (!this.loaded) {
-            this.logger.warning("Method processMessage called when TabooManager is not loaded yet!");
+            this.logger.warning("Method executeActions called when TabooManager is not loaded yet!");
             return;
         }
         for (String actionName : taboo.getActions()) {
@@ -151,6 +169,8 @@ public class TabooManager {
                     this.logger.stackTrace(t);
                     this.logger.warning("Exception ocurred when executing action \"" + actionName + "\"");
                 }
+            } else {
+                this.logger.warning("Action \"" + actionName + "\" not found.");
             }
         }
     }

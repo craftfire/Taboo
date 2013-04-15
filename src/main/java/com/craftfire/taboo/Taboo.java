@@ -80,6 +80,15 @@ public class Taboo {
         }
     }
 
+    protected Taboo(TabooManager manager) {
+        this.manager = manager;
+        this.name = "";
+        this.replacement = null;
+        this.includePermission = null;
+        this.excludePermission = null;
+        this.mute = false;
+    }
+
     public String getName() {
         return this.name;
     }
