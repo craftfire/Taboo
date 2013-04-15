@@ -6,4 +6,6 @@ public interface Layer {
     void broadcast(String message);
 
     void executeCommand(String command);
+
+    void schedule(Runnable task);
 }

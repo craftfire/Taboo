@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.craftfire.commons.util.LoggingManager;
 import com.craftfire.commons.yaml.Settings;
@@ -41,14 +43,16 @@ import com.craftfire.commons.yaml.YamlManager;
 import com.craftfire.commons.yaml.YamlNode;
 
 public class TabooManager {
-    private File directory;
+    private final File directory;
     private List<Taboo> taboos;
     private boolean onlyOnce;
     private boolean enableClassLoader;
     private Map<String, Action> actions;
     private LoggingManager logger = new LoggingManager("CraftFire.TabooManager", "[Taboo]");
     private URLClassLoader classLoader = null;
-    private Layer layer;
+    private final Layer layer;
+    private Lock loadLock = new ReentrantLock();
+    private boolean loaded = false;
 
     public TabooManager(Layer layer, File directory) {
         this.layer = layer;
@@ -56,16 +60,24 @@ public class TabooManager {
     }
 
     public void load() throws TabooException {
+        if (this.loaded) {
+            return;
+        }
         defaultFile(this.directory, "", "config.yml");
         YamlManager config = new SimpleYamlManager(new File(this.directory, "config.yml"), new Settings().setLogger(this.logger));
         if (!config.load()) {
             throw new TabooException("Failed to load the config");
         }
 
-        synchronized (this) {
+        this.loadLock.lock();
+        if (this.loaded) {
+            this.loadLock.unlock();
+            return;
+        }
+        try {
             loadSettings(config);
             if (this.enableClassLoader) {
-                setupClassLoader();
+                this.classLoader = setupClassLoader();
             } else {
                 this.classLoader = null;
             }
@@ -76,21 +88,31 @@ public class TabooManager {
             } catch (YamlException e) {
                 throw new TabooException("Exception occurred during config loading.", e);
             }
+            this.loaded = true;
+        } finally {
+            this.loadLock.unlock();
         }
     }
 
-    public String processMessage(String message, TabooPlayer player) {
+    public String processMessage(String message, TabooPlayer player, boolean delayActions) {
         this.logger.debug("Processing message: \"" + message + "\" by player: " + player.getName());
+        if (!this.loaded) {
+            this.logger.warning("Method processMessage called when TabooManager is not loaded yet!");
+            return message;
+        }
         Iterator<Taboo> i = this.taboos.iterator();
-        boolean onlyOnce = this.onlyOnce;   // For thread safety
         while (i.hasNext()) {
             Taboo taboo = i.next();
             this.logger.debug("Checking taboo " + taboo.getName());
             if (taboo.matches(message, player)) {
                 this.logger.debug("It matches!");
-                executeActions(taboo, player, message);
+                if (delayActions) {
+                    this.layer.schedule(new DelayedActionsTask(this, taboo, player, message));
+                } else {
+                    executeActions(taboo, player, message);
+                }
                 message = taboo.replace(message);
-                if (onlyOnce) {
+                if (this.onlyOnce) {
                     break;
                 }
             }
@@ -115,9 +137,12 @@ public class TabooManager {
 
     protected void executeActions(Taboo taboo, TabooPlayer player, String message) {
         this.logger.debug("Executing actions for taboo " + taboo.getName() + " on player " + player.getName());
-        Map<String, Action> actions = this.actions; // For thread safety
+        if (!this.loaded) {
+            this.logger.warning("Method processMessage called when TabooManager is not loaded yet!");
+            return;
+        }
         for (String actionName : taboo.getActions()) {
-            Action action = actions.get(actionName);
+            Action action = this.actions.get(actionName);
             if (action != null) {
                 this.logger.debug("Executing action: " + actionName);
                 try {
@@ -131,19 +156,22 @@ public class TabooManager {
     }
 
     protected void loadSettings(YamlManager config) {
+        if (this.loaded) {
+            return;
+        }
         this.onlyOnce = config.getBoolean("match-once");
         this.enableClassLoader = config.getBoolean("enable-actions-classloader");
         this.logger.setDebug(config.getBoolean("debug"));
     }
 
-    protected void setupClassLoader() {
+    protected URLClassLoader setupClassLoader() {
         File actionsDir = new File(this.directory, "actions");
         if (!actionsDir.exists()) {
             actionsDir.mkdirs();
         }
         if (actionsDir.isDirectory()) {
             try {
-                this.classLoader = new URLClassLoader(new URL[] { this.directory.toURI().toURL() }, getClass().getClassLoader());
+                return new URLClassLoader(new URL[] { this.directory.toURI().toURL() }, getClass().getClassLoader());
             } catch (MalformedURLException e) {
                 this.logger.stackTrace(e);
                 this.logger.warning("Could not create actions folder classloader: exception occurred");
@@ -151,6 +179,7 @@ public class TabooManager {
         } else {
             this.logger.warning("Could not create actions folder classloader: \"actions\" directory doesn't exist and can't be created");
         }
+        return null;
     }
 
     protected Map<String, Action> loadActions(YamlManager config) throws YamlException {
@@ -254,6 +283,25 @@ public class TabooManager {
                     }
                 }
             }
+        }
+    }
+
+    protected static class DelayedActionsTask implements Runnable {
+        private final Taboo taboo;
+        private final TabooPlayer player;
+        private final TabooManager manager;
+        private final String message;
+
+        public DelayedActionsTask(TabooManager manager, Taboo taboo, TabooPlayer player, String message) {
+            this.manager = manager;
+            this.taboo = taboo;
+            this.player = player;
+            this.message = message;
+        }
+
+        @Override
+        public void run() {
+            this.manager.executeActions(this.taboo, this.player, this.message);
         }
     }
 }

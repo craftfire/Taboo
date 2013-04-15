@@ -19,6 +19,10 @@
  */
 package com.craftfire.taboo.layer.bukkit;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
@@ -35,20 +39,13 @@ import com.craftfire.commons.util.LoggingManager;
 public class TabooPlugin extends JavaPlugin implements Listener {
     private LoggingManager logger;
     private TabooManager manager;
-    private final Object managerLock = new Object();
 
     @Override
     public void onEnable() {
         this.logger = new LoggingManager(getLogger().getName(), "[Taboo]");
         this.logger.info("Enabling Taboo");
-        synchronized (this.managerLock) {
-            this.manager = new TabooManager(new BukkitLayer(getServer()), getDataFolder());
-        }
-        this.manager.setLoggingManager(this.logger);
         try {
-            synchronized (this.managerLock) {
-                this.manager.load();
-            }
+            this.manager = loadTabooManager();
         } catch (TabooException e) {
             this.logger.stackTrace(e);
             this.logger.severe("Error occurred during initialization of Taboo. Disabling self.");
@@ -61,9 +58,7 @@ public class TabooPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        synchronized (this.managerLock) {
-            this.manager = null;
-        }
+        this.manager = null;
         this.logger.info("Taboo disabled.");
     }
 
@@ -73,9 +68,7 @@ public class TabooPlugin extends JavaPlugin implements Listener {
             sender.sendMessage("Reloading Taboo...");
             this.logger.info("Reloading Taboo (command issued by " + sender.getName() + ")");
             try {
-                synchronized (this.managerLock) {
-                    this.manager.load();
-                }
+                this.manager = loadTabooManager();
                 sender.sendMessage("Taboo reloaded");
                 this.logger.info("Taboo reloaded");
             } catch (TabooException e) {
@@ -88,17 +81,32 @@ public class TabooPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void onPlayerChat(final AsyncPlayerChatEvent event) throws InterruptedException, ExecutionException {
         this.logger.debug("Got an AsyncPlayerChatEvent");
         String message = event.getMessage();
-        TabooPlayer player = new TabooBukkitPlayer(event.getPlayer());
-        synchronized (this.managerLock) {
-            message = this.manager.processMessage(message, player);
+        final TabooPlayer player = new TabooBukkitPlayer(event.getPlayer());
+        if (event.isAsynchronous()) {
+            Future<String> future = getServer().getScheduler().callSyncMethod(this, new Callable<String>() {
+                @Override
+                public String call() {
+                    return TabooPlugin.this.manager.processMessage(event.getMessage(), player, true);
+                }
+            });
+            message = future.get();
+        } else {
+            message = this.manager.processMessage(message, player, false);
         }
         if (message.isEmpty()) {
             event.setCancelled(true);
             return;
         }
         event.setMessage(message);
+    }
+
+    protected TabooManager loadTabooManager() throws TabooException {
+        TabooManager manager = new TabooManager(new BukkitLayer(getServer(), this), getDataFolder());
+        manager.setLoggingManager(this.logger);
+        manager.load();
+        return manager;
     }
 }
