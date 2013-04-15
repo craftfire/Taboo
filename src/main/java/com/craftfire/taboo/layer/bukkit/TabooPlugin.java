@@ -20,6 +20,7 @@
 package com.craftfire.taboo.layer.bukkit;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -81,8 +82,8 @@ public class TabooPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerChat(final AsyncPlayerChatEvent event) throws InterruptedException, ExecutionException {
-        this.logger.debug("Got an AsyncPlayerChatEvent");
+    public void onPlayerChat(final AsyncPlayerChatEvent event) throws ExecutionException, InterruptedException {
+        this.logger.debug("Got an " + (event.isAsynchronous() ? "async" : "sync") + " AsyncPlayerChatEvent");
         String message = event.getMessage();
         final TabooPlayer player = new TabooBukkitPlayer(event.getPlayer());
         if (event.isAsynchronous()) {
@@ -92,7 +93,16 @@ public class TabooPlugin extends JavaPlugin implements Listener {
                     return TabooPlugin.this.manager.processMessage(event.getMessage(), player, true);
                 }
             });
-            message = future.get();
+            try {
+                while (!future.isDone()) {
+                    try {
+                        future.get();   // Just wait for it to finish
+                    } catch (InterruptedException e) {
+                    }
+                }
+                message = future.get();
+            } catch (CancellationException e) {
+            }
         } else {
             message = this.manager.processMessage(message, player, false);
         }
