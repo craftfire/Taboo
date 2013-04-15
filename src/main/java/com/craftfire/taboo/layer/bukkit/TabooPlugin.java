@@ -38,6 +38,7 @@ import com.craftfire.taboo.TabooPlayer;
 import com.craftfire.commons.util.LoggingManager;
 
 public class TabooPlugin extends JavaPlugin implements Listener {
+    private static final boolean CARE_ABOUT_PERMISSIONS_THREADSAFE = true;
     private LoggingManager logger;
     private TabooManager manager;
 
@@ -86,7 +87,7 @@ public class TabooPlugin extends JavaPlugin implements Listener {
         this.logger.debug("Got an " + (event.isAsynchronous() ? "async" : "sync") + " AsyncPlayerChatEvent");
         String message = event.getMessage();
         final TabooPlayer player = new TabooBukkitPlayer(event.getPlayer());
-        if (event.isAsynchronous()) {
+        if (CARE_ABOUT_PERMISSIONS_THREADSAFE && event.isAsynchronous()) {
             Future<String> future = getServer().getScheduler().callSyncMethod(this, new Callable<String>() {
                 @Override
                 public String call() {
@@ -104,7 +105,7 @@ public class TabooPlugin extends JavaPlugin implements Listener {
             } catch (CancellationException e) {
             }
         } else {
-            message = this.manager.processMessage(message, player, false);
+            message = this.manager.processMessage(message, player, event.isAsynchronous());
         }
         if (message.isEmpty()) {
             event.setCancelled(true);
