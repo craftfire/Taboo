@@ -10,7 +10,6 @@ load: startup
 commands:
     ${project.artifactId}:
         description: Info about Taboo and config reload.
-        permission: ${project.artifactId}.reload
         usage: |
             ${project.name} ${project.version} by ${project.organization.name} (${project.url})
             Usage:

@@ -19,6 +19,8 @@
  */
 package com.craftfire.taboo.layer.bukkit;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -66,7 +68,14 @@ public class TabooPlugin extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("taboo") && args.length >= 1 && args[0].equalsIgnoreCase("reload")) {
+        if (!command.getName().equalsIgnoreCase("taboo") || args.length < 1) {
+            return false;
+        }
+        if (args[0].equalsIgnoreCase("reload")) {
+            if (!sender.hasPermission("taboo.reload")) {
+                sender.sendMessage(command.getPermissionMessage());
+                return true;
+            }
             sender.sendMessage("Reloading Taboo...");
             this.logger.info("Reloading Taboo (command issued by " + sender.getName() + ")");
             try {
@@ -76,6 +85,27 @@ public class TabooPlugin extends JavaPlugin implements Listener {
             } catch (TabooException e) {
                 sender.sendMessage("Failed to reload Taboo. Check errors on console.");
                 this.logger.stackTrace(e);
+            }
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("fire") && args.length >= 3) {
+            if (!sender.hasPermission("taboo.fire." + args[2])) {
+                sender.sendMessage(command.getPermissionMessage());
+                return true;
+            }
+            try {
+                sender.sendMessage("Firing action \"" + args[2] + "\" on player: " + args[1]);
+                this.logger.info(sender.getName() + " fired action \"" + args[2] + "\" on player: " + args[1]);
+                this.manager.fireAction(args[2], new TabooBukkitPlayer(getServer().getPlayer(args[1])));
+            } catch (TabooException e) {
+                sender.sendMessage("Failed to fire the action: " + e.getMessage());
+                if (e.getCause() != null) {
+                    Map<Integer, String> extra = new HashMap<Integer, String>();
+                    extra.put(1, "sender: " + sender.getName());
+                    extra.put(2, "action: " + args[2]);
+                    extra.put(3, "target: " + args[1]);
+                    this.logger.stackTrace(e, extra);
+                }
             }
             return true;
         }
@@ -97,7 +127,7 @@ public class TabooPlugin extends JavaPlugin implements Listener {
             try {
                 while (!future.isDone()) {
                     try {
-                        future.get();   // Just wait for it to finish
+                        future.get(); // Just wait for it to finish
                     } catch (InterruptedException e) {
                     }
                 }
