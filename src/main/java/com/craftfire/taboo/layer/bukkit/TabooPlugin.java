@@ -88,8 +88,8 @@ public class TabooPlugin extends JavaPlugin implements Listener {
             }
             return true;
         }
-        if (args[0].equalsIgnoreCase("fire") && args.length >= 3) {
-            if (!sender.hasPermission("taboo.fire." + args[2])) {
+        if ((args[0].equalsIgnoreCase("execute") || args[0].equalsIgnoreCase("exec")) && args.length >= 3) {
+            if (!sender.hasPermission("taboo.execute." + args[2])) {
                 sender.sendMessage(command.getPermissionMessage());
                 return true;
             }
