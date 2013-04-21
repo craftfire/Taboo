@@ -9,8 +9,9 @@ load: startup
 
 commands:
     ${project.artifactId}:
-        description: Info about Taboo and config reload.
+        description: Info about ${project.name}, config reload, and manual action execution
         usage: |
             ${project.name} ${project.version} by ${project.organization.name} (${project.url})
             Usage:
             /<command> reload - reload config.yml
+            /<command> execute <player> <action> - manually execute an action from config on a player.

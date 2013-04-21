@@ -26,8 +26,10 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -41,6 +43,7 @@ import com.craftfire.commons.util.LoggingManager;
 
 public class TabooPlugin extends JavaPlugin implements Listener {
     private static final boolean CARE_ABOUT_PERMISSIONS_THREADSAFE = true;
+    private static final String NO_PERM_MSG = ChatColor.RED + "You don't have permission to use this command.";
     private LoggingManager logger;
     private TabooManager manager;
 
@@ -73,11 +76,11 @@ public class TabooPlugin extends JavaPlugin implements Listener {
         }
         if (args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission("taboo.reload")) {
-                sender.sendMessage(command.getPermissionMessage());
+                sender.sendMessage(NO_PERM_MSG);
                 return true;
             }
             sender.sendMessage("Reloading Taboo...");
-            this.logger.info("Reloading Taboo (command issued by " + sender.getName() + ")");
+            this.logger.info("Reloading Taboo");
             try {
                 this.manager = loadTabooManager();
                 sender.sendMessage("Taboo reloaded");
@@ -90,15 +93,19 @@ public class TabooPlugin extends JavaPlugin implements Listener {
         }
         if ((args[0].equalsIgnoreCase("execute") || args[0].equalsIgnoreCase("exec")) && args.length >= 3) {
             if (!sender.hasPermission("taboo.execute." + args[2])) {
-                sender.sendMessage(command.getPermissionMessage());
+                sender.sendMessage(NO_PERM_MSG);
                 return true;
             }
             try {
-                sender.sendMessage("Firing action \"" + args[2] + "\" on player: " + args[1]);
-                this.logger.info(sender.getName() + " fired action \"" + args[2] + "\" on player: " + args[1]);
-                this.manager.fireAction(args[2], new TabooBukkitPlayer(getServer().getPlayer(args[1])));
+                Player target = getServer().getPlayer(args[1]);
+                if (target == null) {
+                    sender.sendMessage("Player \"" + args[1] + "\" not found");
+                    return true;
+                }
+                sender.sendMessage("Executing action \"" + args[2] + "\" on player: " + args[1]);
+                this.manager.fireAction(args[2], new TabooBukkitPlayer(target));
             } catch (TabooException e) {
-                sender.sendMessage("Failed to fire the action: " + e.getMessage());
+                sender.sendMessage("Failed to execute the action: " + e.getMessage());
                 if (e.getCause() != null) {
                     Map<Integer, String> extra = new HashMap<Integer, String>();
                     extra.put(1, "sender: " + sender.getName());

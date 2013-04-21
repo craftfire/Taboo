@@ -27,6 +27,9 @@ public class TabooBukkitPlayer implements TabooPlayer {
     private Player player;
 
     public TabooBukkitPlayer(Player player) {
+        if (player == null) {
+            throw new IllegalArgumentException("Player cannot be null!");
+        }
         this.player = player;
     }
 
