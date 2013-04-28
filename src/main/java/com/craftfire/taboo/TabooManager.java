@@ -28,6 +28,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -43,6 +44,8 @@ import com.craftfire.commons.yaml.YamlManager;
 import com.craftfire.commons.yaml.YamlNode;
 
 public class TabooManager {
+    public static final String DEFAULT_ACTION_PATH = "com.craftfire.taboo.actions.";
+
     private final File directory;
     private List<Taboo> taboos;
     private boolean onlyOnce;
@@ -50,13 +53,26 @@ public class TabooManager {
     private Map<String, Action> actions;
     private LoggingManager logger = new LoggingManager("CraftFire.TabooManager", "[Taboo]");
     private URLClassLoader classLoader = null;
+    private final List<String> actionPaths = new ArrayList<String>();
     private final Layer layer;
     private Lock loadLock = new ReentrantLock();
     private boolean loaded = false;
 
-    public TabooManager(Layer layer, File directory) {
+    public TabooManager(Layer layer, File directory, Collection<String> actionPaths) {
+        if (layer == null) {
+            throw new IllegalArgumentException("Layer cannot be null!");
+        }
+        if (directory == null) {
+            throw new IllegalArgumentException("Directory cannot be null!");
+        }
+        if (actionPaths == null) {
+            throw new IllegalArgumentException("ActionPaths cannot be null!");
+        }
+
         this.layer = layer;
         this.directory = directory;
+        this.actionPaths.add(DEFAULT_ACTION_PATH);
+        this.actionPaths.addAll(actionPaths);
     }
 
     public void load() throws TabooException {
@@ -129,6 +145,10 @@ public class TabooManager {
             throw new IllegalArgumentException("The loggingManager can't be null!");
         }
         this.logger = loggingManager;
+    }
+
+    public List<String> getActionPaths() {
+        return new ArrayList<String>(this.actionPaths);
     }
 
     public Layer getLayer() {
@@ -204,35 +224,16 @@ public class TabooManager {
 
     protected Map<String, Action> loadActions(YamlManager config) throws YamlException {
         Map<String, Action> actions = new HashMap<String, Action>();
-        ClassLoader classLoader = this.classLoader; // For thread safety
         for (YamlNode node : config.getNode("actions").getChildrenList()) {
             String className = node.getChild("class").getString();
-            Class<?> c = null;
-            try {
-                c = Class.forName(className);
-            } catch (ClassNotFoundException ignore) {
-            }
-            if (c == null || !Action.class.isAssignableFrom(c)) {
-                try {
-                    c = Class.forName("com.craftfire.taboo.actions." + className);
-                } catch (ClassNotFoundException ignore) {
-                }
-            }
-            if (c == null || !Action.class.isAssignableFrom(c)) {
-                try {
-                    if (classLoader != null) {
-                        c = Class.forName(className, true, classLoader);
-                    }
-                } catch (ClassNotFoundException e) {
-                }
-            }
-            if (c == null || !Action.class.isAssignableFrom(c)) {
+            Class<? extends Action> c = findActionClass(className);
+            if (c == null) {
                 this.logger.warning("Can't load action \"" + node.getName() + "\": class \"" + className + "\" not found or not a subclass of Action.");
                 continue;
             }
             Constructor<? extends Action> con;
             try {
-                con = c.asSubclass(Action.class).getConstructor(YamlNode.class);
+                con = c.getConstructor(YamlNode.class);
                 actions.put(node.getName(), con.newInstance(node));
             } catch (Throwable e) {
                 this.logger.stackTrace(e);
@@ -241,6 +242,41 @@ public class TabooManager {
         }
         this.logger.info("Loaded " + actions.size() + " of " + config.getNode("actions").getChildrenCount() + " actions");
         return actions;
+    }
+
+    protected Class<? extends Action> findActionClass(String className) {
+        Class<?> c = null;
+        try {
+            c = Class.forName(className);
+        } catch (ClassNotFoundException ignore) {
+        }
+
+        if (c != null && Action.class.isAssignableFrom(c)) {
+            return c.asSubclass(Action.class);
+        }
+
+        for (String path : this.actionPaths) {
+            try {
+                c = Class.forName(path + className);
+            } catch (ClassNotFoundException ignore) {
+            }
+
+            if (c != null && Action.class.isAssignableFrom(c)) {
+                return c.asSubclass(Action.class);
+            }
+        }
+
+        try {
+            if (this.classLoader != null) {
+                c = Class.forName(className, true, this.classLoader);
+            }
+        } catch (ClassNotFoundException e) {
+        }
+
+        if (c != null && Action.class.isAssignableFrom(c)) {
+            return c.asSubclass(Action.class);
+        }
+        return null;
     }
 
     protected List<Taboo> loadTaboos(YamlManager config) throws YamlException {

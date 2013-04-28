@@ -19,7 +19,9 @@
  */
 package com.craftfire.taboo.layer.bukkit;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -42,15 +44,18 @@ import com.craftfire.taboo.TabooPlayer;
 import com.craftfire.commons.util.LoggingManager;
 
 public class TabooPlugin extends JavaPlugin implements Listener {
+    public static final String LAYER_ACTION_PATH = "com.craftfire.taboo.layer.bukkit.actions.";
     private static final boolean CARE_ABOUT_PERMISSIONS_THREADSAFE = true;
     private static final String NO_PERM_MSG = ChatColor.RED + "You don't have permission to use this command.";
     private LoggingManager logger;
     private TabooManager manager;
+    private List<String> actionPaths = new ArrayList<String>();
 
     @Override
     public void onEnable() {
         this.logger = new LoggingManager(getLogger().getName(), "[Taboo]");
         this.logger.info("Enabling Taboo");
+        this.actionPaths.add(LAYER_ACTION_PATH);
         try {
             this.manager = loadTabooManager();
         } catch (TabooException e) {
@@ -151,8 +156,12 @@ public class TabooPlugin extends JavaPlugin implements Listener {
         event.setMessage(message);
     }
 
+    public List<String> getActionPaths() {
+        return this.actionPaths;
+    }
+
     protected TabooManager loadTabooManager() throws TabooException {
-        TabooManager manager = new TabooManager(new BukkitLayer(getServer(), this), getDataFolder());
+        TabooManager manager = new TabooManager(new BukkitLayer(getServer(), this), getDataFolder(), this.actionPaths);
         manager.setLoggingManager(this.logger);
         manager.load();
         return manager;
