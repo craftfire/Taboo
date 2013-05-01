@@ -155,10 +155,10 @@ public class TabooManager {
         return this.layer;
     }
 
-    public void fireAction(String actionName, TabooPlayer player) throws TabooException {
-        this.logger.debug("Action " + actionName + " fired on " + player.getName());
+    public void execAction(String actionName, TabooPlayer player) throws TabooException {
+        this.logger.debug("Action " + actionName + " executed on " + player.getName());
         if (!this.loaded) {
-            this.logger.warning("Method fireAction called when TabooManager is not loaded yet!");
+            this.logger.warning("Method execAction called when TabooManager is not loaded yet!");
             return;
         }
         Action action = this.actions.get(actionName);

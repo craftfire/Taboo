@@ -108,7 +108,7 @@ public class TabooPlugin extends JavaPlugin implements Listener {
                     return true;
                 }
                 sender.sendMessage("Executing action \"" + args[2] + "\" on player: " + args[1]);
-                this.manager.fireAction(args[2], new TabooBukkitPlayer(target));
+                this.manager.execAction(args[2], new TabooBukkitPlayer(target));
             } catch (TabooException e) {
                 sender.sendMessage("Failed to execute the action: " + e.getMessage());
                 if (e.getCause() != null) {
