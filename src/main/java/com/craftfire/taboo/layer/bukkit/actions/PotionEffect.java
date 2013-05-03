@@ -49,8 +49,8 @@ public class PotionEffect extends Action {
             if (effectType.isInstant()) {
                 duration = 1;
             }
-            if (getArgs().hasChild("length")) {
-                duration = getArgs().getChild("length").getInt();
+            if (getArgs().hasChild("duration")) {
+                duration = getArgs().getChild("duration").getInt();
             }
             if (getArgs().hasChild("power")) {
                 amplifier = getArgs().getChild("power").getInt();
