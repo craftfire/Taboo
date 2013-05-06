@@ -57,11 +57,11 @@ public class Lightning extends Action {
             } else {
                 Player player = ((TabooBukkitPlayer) target).getPlayer();
                 if (this.playerName != null) {
-                    loc = player.getServer().getPlayer(this.playerName).getLocation();
+                    loc = player.getServer().getPlayer(format(this.playerName, taboo, target, message)).getLocation();
                 } else {
                     World world = null;
                     if (this.worldName != null) {
-                        world = player.getServer().getWorld(this.worldName);
+                        world = player.getServer().getWorld(format(this.worldName, taboo, target, message));
                     }
                     if (world == null) {
                         world = player.getWorld();

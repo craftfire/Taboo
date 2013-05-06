@@ -45,7 +45,7 @@ public class PotionEffect extends Action {
         int duration = 600;
         int amplifier = 0;
         try {
-            PotionEffectType effectType = PotionEffectType.getByName(getArgs().getChild("type").getString());
+            PotionEffectType effectType = PotionEffectType.getByName(format(getArgs().getChild("type").getString(), taboo, target, message));
             if (effectType.isInstant()) {
                 duration = 1;
             }
