@@ -211,7 +211,7 @@ public class TabooManager {
         }
         if (actionsDir.isDirectory()) {
             try {
-                return new URLClassLoader(new URL[] { this.directory.toURI().toURL() }, getClass().getClassLoader());
+                return new URLClassLoader(new URL[] { actionsDir.toURI().toURL() }, getClass().getClassLoader());
             } catch (MalformedURLException e) {
                 this.logger.stackTrace(e);
                 this.logger.warning("Could not create actions folder classloader: exception occurred");
@@ -271,6 +271,9 @@ public class TabooManager {
                 c = Class.forName(className, true, this.classLoader);
             }
         } catch (ClassNotFoundException e) {
+        } catch (LinkageError e) {
+            this.logger.stackTrace(e);
+            this.logger.warning("Found class \"" + className + "\" but cannot load it.");
         }
 
         if (c != null && Action.class.isAssignableFrom(c)) {

@@ -15,6 +15,7 @@ import com.craftfire.commons.yaml.YamlNode;
 public class Lightning extends Action {
     private boolean effect = false;
     private String worldName = null;
+    private String playerName = null;
     private double x, y, z;
 
     public Lightning(YamlNode args) {
@@ -26,6 +27,7 @@ public class Lightning extends Action {
             if (getArgs().hasChild("target")) {
                 YamlNode node = getArgs().getChild("target");
                 if (node.isScalar()) {
+                    this.playerName = node.getString();
                     return;
                 }
                 if (node.isMap()) {
@@ -54,14 +56,18 @@ public class Lightning extends Action {
                 loc = ((TabooBukkitPlayer) target).getPlayer().getLocation();
             } else {
                 Player player = ((TabooBukkitPlayer) target).getPlayer();
-                World world = null;
-                if (this.worldName != null) {
-                    world = player.getServer().getWorld(this.worldName);
+                if (this.playerName != null) {
+                    loc = player.getServer().getPlayer(this.playerName).getLocation();
+                } else {
+                    World world = null;
+                    if (this.worldName != null) {
+                        world = player.getServer().getWorld(this.worldName);
+                    }
+                    if (world == null) {
+                        world = player.getWorld();
+                    }
+                    loc = new Location(world, this.x, this.y, this.z);
                 }
-                if (world == null) {
-                    world = player.getWorld();
-                }
-                loc = new Location(world, this.x, this.y, this.z);
             }
         } catch (YamlException e) {
             throw new RuntimeException(e);
