@@ -20,9 +20,7 @@
 package com.craftfire.taboo.layer.bukkit;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -112,10 +110,10 @@ public class TabooPlugin extends JavaPlugin implements Listener {
             } catch (TabooException e) {
                 sender.sendMessage("Failed to execute the action: " + e.getMessage());
                 if (e.getCause() != null) {
-                    Map<Integer, String> extra = new HashMap<Integer, String>();
-                    extra.put(1, "sender: " + sender.getName());
-                    extra.put(2, "action: " + args[2]);
-                    extra.put(3, "target: " + args[1]);
+                    List<String> extra = new ArrayList<String>();
+                    extra.add("sender: " + sender.getName());
+                    extra.add("action: " + args[2]);
+                    extra.add("target: " + args[1]);
                     this.logger.stackTrace(e, extra);
                 }
             }
