@@ -34,8 +34,12 @@ public class PotionEffect extends Action {
 
     public PotionEffect(YamlNode args) {
         super(args);
-        if (!args.hasChild("type")) {
-            throw new IllegalArgumentException("Missing argument: type");
+        try {
+            if (!args.hasChild("type") || args.getChild("type").isNull()) {
+                throw new IllegalArgumentException("Missing argument: type");
+            }
+        } catch (YamlException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -45,7 +49,11 @@ public class PotionEffect extends Action {
         int duration = 600;
         int amplifier = 0;
         try {
-            PotionEffectType effectType = PotionEffectType.getByName(format(getArgs().getChild("type").getString(), taboo, target, message));
+            String effect = format(getArgs().getChild("type").getString(), taboo, target, message);
+            PotionEffectType effectType = PotionEffectType.getByName(effect);
+            if (effectType == null) {
+                throw new IllegalArgumentException("Unknown potion effect type: " + effect);
+            }
             if (effectType.isInstant()) {
                 duration = 1;
             }
