@@ -71,8 +71,12 @@ public class Spawn extends Action {
             }
         }
         String entity;
+        int amount = 1;
         try {
             entity = format(getArgs().getChild("entity").getString(), taboo, target, message);
+            if (getArgs().hasChild("amount")) {
+                amount = getArgs().getChild("amount").getInt(amount);
+            }
         } catch (YamlException e) {
             throw new RuntimeException(e);
         }
@@ -80,7 +84,9 @@ public class Spawn extends Action {
         if (type == null) {
             throw new IllegalArgumentException("Unknown entity type: " + entity);
         }
-        loc.getWorld().spawnEntity(loc, type);
+        for (int i = 0; i < amount; ++i) {
+            loc.getWorld().spawnEntity(loc, type);
+        }
     }
 
 }
