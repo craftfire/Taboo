@@ -42,18 +42,25 @@ public abstract class Action {
             return null;
         }
         String str = text;
-        str = str.replaceAll("<player>", player.getName());
-        str = str.replaceAll("<taboo>", taboo.getName());
-        str = str.replaceAll("<replacement>", taboo.getReplacement());
-        str = str.replaceAll("<mesage>", message);
+        str = str.replaceAll("<player>", Matcher.quoteReplacement(player.getName()));
+        str = str.replaceAll("<taboo>", Matcher.quoteReplacement(taboo.getName()));
+        if (taboo.getReplacement() != null) {
+            str = str.replaceAll("<replacement>", Matcher.quoteReplacement(taboo.getReplacement())); // TODO parse $groups in replacement in context of matched message
+        }
+        str = str.replaceAll("<mesage>", Matcher.quoteReplacement(message));
 
         for (Pattern pattern : taboo.getPatterns()) {
             Matcher matcher = pattern.matcher(message);
             if (matcher.find()) {
-                str = str.replaceAll("<match>", matcher.group());
+                str = str.replaceAll("<match>", Matcher.quoteReplacement(matcher.group()));
+                for (int i = 0; i <= matcher.groupCount(); ++i) {
+                    str = str.replaceAll("<" + i + ">", Matcher.quoteReplacement(matcher.group(i)));
+                }
                 break;
             }
         }
+        str = str.replaceAll("/<", "<");
+        str = str.replaceAll("/>", ">");
         return str;
     }
 }
